@@ -90,5 +90,5 @@ terraform destroy -auto-approve
 ---
 **Author:** Aiman Fatihah
 **Date:** March 21, 2025 
-**Company/Project:** Pixlr - DevOps Assessment
+**Project:** Pixlr - DevOps Assessment
 
