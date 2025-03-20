@@ -87,16 +87,6 @@ To delete all resources created by Terraform, run:
 terraform destroy -auto-approve
 ```
 
-## Assumptions
-- **Region:** The script uses `us-east-1`, but you can modify it in `main.tf`.
-- **Security:** The security group allows SSH (22) from anywhere, which should be restricted for production.
-- **IAM Role:** The EC2 instance is granted **read-only** S3 access.
-
-## Next Steps
-- Implement Auto Scaling for dynamic resource allocation
-- Use a Load Balancer for handling high traffic
-- Configure AWS Systems Manager for automated maintenance and security patching
-
 ---
 **Author:** Aiman Fatihah
 **Date:** March 21, 2025 
