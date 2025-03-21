@@ -1,155 +1,33 @@
-# CI/CD Pipeline for Pixlr Kubernetes Deployment
+# Welcome to Aiman Fatihah's DevOps Repository 👋
 
-## Overview
-This document describes the **CI/CD pipeline** for deploying the **Pixlr** web application using **GitHub Actions, Docker Hub, AWS EKS, and Helm**. The pipeline automates the build, test, security scan, and deployment processes, ensuring a streamlined and secure workflow.
+## Greetings!
+Hello and welcome to my **Pixlr Infra** repository! I truly appreciate your time in reviewing my work. This repository showcases my **DevOps, CI/CD, and infrastructure automation skills**, focusing on Terraform, Kubernetes, and GitHub Actions.
 
-## Tools Selection
+## About Me 🚀
+I'm **Aiman Fatihah Binti Ahmad Razif**, an **Application Analyst** with a strong foundation in **cloud computing, automation, and system reliability**. My goal is to transition into **DevOps engineering**, leveraging my experience in AWS, Kubernetes, CI/CD pipelines, and automation scripting.
 
-| Stage               | Tool                     | Justification |
-|---------------------|-------------------------|--------------|
-| **Version Control** | GitHub                   | Centralized repository for code and CI/CD workflows. |
-| **CI/CD Automation** | GitHub Actions          | Native GitHub integration with built-in automation capabilities. |
-| **Containerization** | Docker                  | Ensures consistency across development and production. |
-| **Container Registry** | Docker Hub           | Public/private repository for storing container images. |
-| **Security Scanning** | Trivy                  | Identifies vulnerabilities in Docker images. |
-| **Kubernetes Cluster** | Amazon EKS           | Managed Kubernetes service for scalable application deployment. |
-| **Deployment Management** | Helm              | Simplifies Kubernetes application management with version control. |
+### 🔹 **Key Skills**
+- **Cloud & Infrastructure**: AWS (RDS, IAM, ECR, Secret Manager), Kubernetes, Docker
+- **Automation & Scripting**: Python, SQL, PL/SQL, PowerShell (basic)
+- **CI/CD & Version Control**: Git, GitHub Actions, Terraform
+- **Databases**: MySQL, Oracle, PostgreSQL
+- **Developer Tools**: Postman, Power BI, Jaspersoft Studio
 
-## Pipeline Stages
+## What You'll Find in This Repository 🏗️
+This repository contains my **Terraform scripts**, **GitHub Actions workflows**, and **Kubernetes deployment configurations** to automate cloud infrastructure provisioning and application deployment. It highlights my ability to **optimize infrastructure, automate deployments, and secure cloud environments**.
 
-### 1. **Trigger**
-- The pipeline is triggered on **push** and **pull request** events to the `main` and `develop` branches.
+### 🔹 **Key Features of This Repo**
+- **Infrastructure as Code (IaC)**: Automates AWS infrastructure using Terraform
+- **CI/CD Pipeline**: GitHub Actions for continuous integration & deployment
+- **Kubernetes Deployment**: Helm & kubectl for scalable deployments
+- **Security Best Practices**: IAM role management, security scanning
 
-### 2. **Build and Push Docker Image**
-- Uses **Docker Buildx** for multi-platform builds.
-- Logs into **Docker Hub** and pushes the Docker image with a commit-based tag.
+## Let's Connect! 📩
+I'm excited about opportunities in **DevOps & Cloud Engineering**. Feel free to connect with me!
 
-### 3. **Run Tests**
-- Runs application tests inside a **Docker container** to verify functionality.
+📧 Email: [aimanfatihahh@gmail.com](mailto:aimanfatihahh@gmail.com)  
+🔗 LinkedIn: [linkedin.com/in/aimanfatihahh](https://linkedin.com/in/aimanfatihahh)  
+💻 GitHub: [github.com/aimanfatihahhh](https://github.com/aimanfatihahhh)
 
-### 4. **Security Scan**
-- Uses **Trivy** to scan the built Docker image for vulnerabilities.
+Thank you for visiting! Looking forward to your feedback and discussions. 😊🚀
 
-### 5. **Deploy to Kubernetes (AWS EKS)**
-- Configures **kubectl** for EKS access.
-- Installs **Helm** for Kubernetes deployment management.
-- Deploys the application to EKS using Helm.
-
-### 6. **Rollback on Failure**
-- If the deployment fails, Helm rolls back the application to the previous successful version.
-
-## GitHub Actions Workflow
-
-```yaml
-name: CI/CD Pipeline for Pixlr Kubernetes Deployment
-
-on:
-  push:
-    branches:
-      - main
-      - develop
-  pull_request:
-    branches:
-      - main
-      - develop
-
-jobs:
-  build:
-    name: Build and Push Docker Image
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-
-      - name: Build and Push Docker Image
-        run: |
-          IMAGE_TAG=$(git rev-parse --short HEAD)
-          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/pixlr-app:$IMAGE_TAG . 
-          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/pixlr-app:$IMAGE_TAG
-          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
-
-  test:
-    name: Run Tests
-    runs-on: ubuntu-latest
-    needs: build
-
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-
-      - name: Run Tests
-        run: |
-          docker run --rm ${{ secrets.DOCKER_HUB_USERNAME }}/pixlr-app:${{ env.IMAGE_TAG }} npm test  
-
-  security_scan:
-    name: Security Scan
-    runs-on: ubuntu-latest
-    needs: build
-
-    steps:
-      - name: Install Trivy
-        run: |
-          sudo apt-get install wget -y
-          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy-linux-amd64 -O trivy
-          chmod +x trivy
-          sudo mv trivy /usr/local/bin/
-
-      - name: Run Security Scan
-        run: |
-          trivy image --exit-code 1 --severity HIGH,CRITICAL ${{ secrets.DOCKER_HUB_USERNAME }}/pixlr-app:${{ env.IMAGE_TAG }} 
-
-  deploy:
-    name: Deploy to Kubernetes
-    runs-on: ubuntu-latest
-    needs: [test, security_scan]
-
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-
-      - name: Setup Kubectl
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1 
-
-      - name: Setup Helm
-        run: |
-          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-
-      - name: Configure Kubeconfig
-        run: |
-          aws eks update-kubeconfig --region us-east-1 --name pixlr-cluster
-
-      - name: Deploy to Kubernetes
-        run: |
-          IMAGE_TAG=${{ env.IMAGE_TAG }}
-          helm upgrade --install pixlr-app ./helm-chart \
-            --set image.repository=${{ secrets.DOCKER_HUB_USERNAME }}/pixlr-app \
-            --set image.tag=$IMAGE_TAG
-
-  rollback:
-    name: Rollback on Failure
-    runs-on: ubuntu-latest
-    if: failure()
-    needs: deploy
-
-    steps:
-      - name: Configure Kubeconfig
-        run: |
-          aws eks update-kubeconfig --region us-east-1 --name pixlr-cluster
-
-      - name: Rollback Deployment
-        run: |
-          helm rollback pixlr-app --wait  
